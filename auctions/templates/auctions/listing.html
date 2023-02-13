@@ -1,0 +1,81 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listing: {{list.title}}</h2>
+
+    <div>
+        {% if user.is_authenticated and list.isActive %}
+            {% if isOwner %}
+                <form action="{% url 'removeAuction' id=list.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" value="Close Auctions">
+                </form>
+            {% endif %}
+            {% if listingWatchlist %}
+                <form action="{% url 'removeWatchlist' id=list.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" value="Remove From Watchlist!">
+                </form>
+            {% else %}
+                <form action="{% url 'addWatchlist' id=list.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" value="Add From Watchlist!">
+                </form>
+            {% endif %}
+
+
+        {% else %}
+            {% if isOwner %}
+            <div class="alert alert-success" role="alert">
+                {{ closeComment }}
+            </div>
+            {% endif %}
+            {% if not list.isAction and user == list.price.user %}
+            <div class="alert alert-success" role="alert">
+                CONGRATULATIONS! YOU WON! 
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <img src="{{list.url}}" class="img-fluid" alt="{{ list.title }}">
+    <p>{{list.description}}</p>
+    <p>Owner: {{list.owner}}</p>
+    <h2>${{list.price.bidingPrice}}</h2>
+
+    <div>
+        <h2>Bid</h2>
+        {% if user.is_authenticated %}
+            <form action="{% url 'addBid' id=list.id %}" method="POST">
+                {% csrf_token %}
+                <input type="number" min="0" name="bid_price" placeholder="Amount">
+                <input type="submit" value="Bid">
+            </form>
+            {% if bidComment %}
+                {% if status %}
+                    <div class="alert alert-success" role="alert">
+                    {{ bidComment }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger" role="alert">
+                    {{ bidComment }}
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div>
+        <h2>Comments</h2>
+        {% if user.is_authenticated %}
+            {% for comment in message %}
+            <p>{{ comment.author }} : {{ comment.message }}</p>
+            {% endfor %}
+            <form action="{% url 'addComment' id=list.id %}" method="POST">
+                {% csrf_token %}
+                <input type="text" name="newComment" placeholder="Type Comment">
+                <input type="submit" value="Add Comment">
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
